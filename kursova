@@ -1,0 +1,142 @@
+using System;
+
+class MinesweeperGame
+{
+    const int BoardSize = 5; 
+    const int MineCount = 2; 
+
+    bool[,] mines;
+    char[,] board;
+    bool gameOver;
+
+    static void Main()
+    {
+        MinesweeperGame game = new MinesweeperGame();
+        game.Run();
+    }
+
+    void Run()
+    {
+        mines = GenerateMines(BoardSize, MineCount);
+        board = new char[BoardSize, BoardSize];
+        gameOver = false;
+
+        while (!gameOver)
+        {
+            PrintBoard();
+
+            (int row, int col) = GetInputCoordinates();
+
+            if (mines[row, col])
+            {
+                Console.WriteLine("Бомба. Гра закінчена.");
+                board[row, col] = '*';
+                PrintBoard();
+                gameOver = true;
+            }
+            else
+            {
+                int adjacentMines = CountAdjacentMines(row, col);
+                board[row, col] = adjacentMines.ToString()[0];
+
+                if (CheckWinCondition())
+                {
+                    Console.WriteLine("Перемога!");
+                    PrintBoard();
+                    gameOver = true;
+                }
+            }
+        }
+
+        Console.WriteLine("Натисніть будь-яку клавішу для виходу");
+        Console.ReadKey();
+    }
+
+    bool[,] GenerateMines(int boardSize, int mineCount)
+    {
+        bool[,] mines = new bool[boardSize, boardSize];
+        Random random = new Random();
+
+        while (mineCount > 0)
+        {
+            int row = random.Next(0, boardSize);
+            int col = random.Next(0, boardSize);
+
+            if (!mines[row, col])
+            {
+                mines[row, col] = true;
+                mineCount--;
+            }
+        }
+
+        return mines;
+    }
+
+    (int, int) GetInputCoordinates()
+    {
+        int row = -1;
+        int col = -1;
+
+        while (row < 0 || row >= BoardSize || col < 0 || col >= BoardSize)
+        {
+            Console.WriteLine(" Введіть координати клітини (ex. 1 1):");
+            string[] input = Console.ReadLine().Split();
+            row = int.Parse(input[0]);
+            col = int.Parse(input[1]);
+        }
+
+        return (row, col);
+    }
+
+    int CountAdjacentMines(int row, int col)
+    {
+        int count = 0;
+        int boardSize = mines.GetLength(0);
+
+        for (int i = row - 1; i <= row + 1; i++)
+        {
+            for (int j = col - 1; j <= col + 1; j++)
+            {
+                if (i >= 0 && i < boardSize && j >= 0 && j < boardSize && mines[i, j])
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    bool CheckWinCondition()
+    {
+        int uncoveredCount = 0;
+
+        foreach (char cell in board)
+        {
+            if (char.IsDigit(cell))
+            {
+                uncoveredCount++;
+            }
+        }
+
+        return uncoveredCount == (BoardSize * BoardSize - MineCount);
+    }
+
+    void PrintBoard()
+    {
+        Console.WriteLine("Поле зараз:");
+        Console.WriteLine();
+
+        for (int row = 0; row < BoardSize; row++)
+        {
+            for (int col = 0; col < BoardSize; col++)
+            {
+                Console.Write(board[row, col] + " ");
+            }
+
+            Console.WriteLine();
+        }
+
+        Console.WriteLine();
+    }
+}
